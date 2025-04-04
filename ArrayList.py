@@ -1,53 +1,141 @@
+class Node:
+    def __init__(self, value: str):
+        self.value = value
+        self.next = None
+
+
 class ArrayList:
     def __init__(self):
-        self._data = []
+        self.head = None
+        self.size = 0
 
     def length(self) -> int:
-        return len(self._data)
+        return self.size
 
     def append(self, element: str) -> None:
-        self._data.append(element)
+        new_node = Node(element)
+        if not self.head:
+            self.head = new_node
+            new_node.next = new_node
+        else:
+            current = self.head
+            while current.next != self.head:
+                current = current.next
+            current.next = new_node
+            new_node.next = self.head
+        self.size += 1
 
     def insert(self, element: str, index: int) -> None:
-        if index < 0 or index > len(self._data):
+        if index < 0 or index > self.size:
             raise IndexError("Index out of bounds")
-        self._data.insert(index, element)
+        new_node = Node(element)
+        if index == 0:
+            if not self.head:
+                self.head = new_node
+                new_node.next = new_node
+            else:
+                tail = self.head
+                while tail.next != self.head:
+                    tail = tail.next
+                new_node.next = self.head
+                self.head = new_node
+                tail.next = self.head
+        else:
+            prev = self.head
+            for _ in range(index - 1):
+                prev = prev.next
+            new_node.next = prev.next
+            prev.next = new_node
+        self.size += 1
 
     def delete(self, index: int) -> str:
-        if index < 0 or index >= len(self._data):
+        if index < 0 or index >= self.size:
             raise IndexError("Index out of bounds")
-        return self._data.pop(index)
+        if self.size == 1:
+            value = self.head.value
+            self.head = None
+        elif index == 0:
+            value = self.head.value
+            tail = self.head
+            while tail.next != self.head:
+                tail = tail.next
+            self.head = self.head.next
+            tail.next = self.head
+        else:
+            prev = self.head
+            for _ in range(index - 1):
+                prev = prev.next
+            value = prev.next.value
+            prev.next = prev.next.next
+        self.size -= 1
+        return value
 
     def deleteAll(self, element: str) -> None:
-        self._data = [e for e in self._data if e != element]
+        index = 0
+        current = self.head
+        for _ in range(self.size):
+            if current.value == element:
+                self.delete(index)
+                current = self.head
+                index = 0
+                continue
+            current = current.next
+            index += 1
 
     def get(self, index: int) -> str:
-        if index < 0 or index >= len(self._data):
+        if index < 0 or index >= self.size:
             raise IndexError("Index out of bounds")
-        return self._data[index]
+        current = self.head
+        for _ in range(index):
+            current = current.next
+        return current.value
 
     def clone(self) -> "ArrayList":
-        cloned_list = ArrayList()
-        cloned_list.extend(self._data)
-        return cloned_list
+        clone_list = ArrayList()
+        current = self.head
+        for _ in range(self.size):
+            clone_list.append(current.value)
+            current = current.next
+        return clone_list
 
     def reverse(self) -> None:
-        self._data.reverse()
+        if not self.head or self.size == 1:
+            return
+        prev = None
+        current = self.head
+        tail = self.head
+        for _ in range(self.size):
+            nxt = current.next
+            current.next = prev
+            prev = current
+            current = nxt
+        self.head.next = prev
+        self.head = prev
+        while tail.next != prev:
+            tail = tail.next
+        tail.next = self.head
 
     def findFirst(self, element: str) -> int:
-        try:
-            return self._data.index(element)
-        except ValueError:
-            return -1
+        current = self.head
+        for i in range(self.size):
+            if current.value == element:
+                return i
+            current = current.next
+        return -1
 
     def findLast(self, element: str) -> int:
-        try:
-            return len(self._data) - 1 - self._data[::-1].index(element)
-        except ValueError:
-            return -1
+        current = self.head
+        last_index = -1
+        for i in range(self.size):
+            if current.value == element:
+                last_index = i
+            current = current.next
+        return last_index
 
     def clear(self) -> None:
-        self._data.clear()
+        self.head = None
+        self.size = 0
 
     def extend(self, elements: list) -> None:
-        self._data.extend(elements)
+        for el in elements:
+            self.append(el)
